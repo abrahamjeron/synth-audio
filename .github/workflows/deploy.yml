@@ -44,6 +44,8 @@ jobs:
           mkdir public
           # Copy demo files
           cp -r test/* public/
+          # Include the repository README so the demo can load it at ./README.md
+          cp README.md public/README.md || true
           # Ensure jsoneditor dist files are copied so the demo is self-contained
           mkdir -p public/node_modules/jsoneditor/dist
           cp test/node_modules/jsoneditor/dist/jsoneditor.min.js public/node_modules/jsoneditor/dist/

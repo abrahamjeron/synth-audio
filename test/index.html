@@ -47,7 +47,7 @@
 
   <script src="./node_modules/jsoneditor/dist/jsoneditor.min.js"></script>
     <script type="module">
-      import SimpleMusicGenerator from '../src/engine/SimpleMusicGenerator.js';
+  import SimpleMusicGenerator from './node_modules/synth-audio/engine/SimpleMusicGenerator.js';
       import { marked } from 'https://cdn.jsdelivr.net/npm/marked@5.1.1/lib/marked.esm.js';
 
       const container = document.getElementById('editor');
@@ -77,8 +77,8 @@
 
       async function loadReadme() {
         try {
-          // fetch README relative to this file (../README.md)
-          const res = await fetch('../README.md');
+          // fetch README relative to the deployed site root (README is copied to public/)
+          const res = await fetch('./README.md');
           if (!res.ok) throw new Error(`Failed to load README: ${res.status}`);
           const md = await res.text();
           const html = marked.parse(md);
