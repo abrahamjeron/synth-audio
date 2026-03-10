@@ -1,0 +1,40 @@
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install demo dependencies
+        working-directory: ./test
+        run: npm ci
+
+      - name: Prepare public folder
+        run: |
+          rm -rf public
+          mkdir public
+          # Copy demo files
+          cp -r test/* public/
+          # Ensure jsoneditor dist files are copied so the demo is self-contained
+          mkdir -p public/node_modules/jsoneditor/dist
+          cp test/node_modules/jsoneditor/dist/jsoneditor.min.js public/node_modules/jsoneditor/dist/
+          cp test/node_modules/jsoneditor/dist/jsoneditor.min.css public/node_modules/jsoneditor/dist/
+          # Add nojekyll to avoid GitHub Pages treating files as Jekyll
+          touch public/.nojekyll
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
