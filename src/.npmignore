@@ -1,0 +1,10 @@
+node_modules
+*.log
+input.json
+.env
+/*.tgz
+/.vscode
+/.idea
+dist
+test
+__tests__

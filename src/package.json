@@ -1,0 +1,32 @@
+{
+  "name": "synth-audio",
+  "version": "0.1.1",
+  "description": "nth Harmony — a lightweight Node.js music generation engine for AI-driven synthesis",
+  "main": "engine/MusicEngine.js",
+  "type": "module",
+  "files": [
+    "index.js",
+    "engine/",
+    "utils/"
+  ],
+  "scripts": {
+  "test": "node -e \"import('./engine/MusicEngine.js').then(m=>console.log('exports:', Object.keys(m), 'defaultExists:', !!m.default)).catch(e=>{console.error(e); process.exit(1)})\""
+  },
+  "keywords": ["music","synthesis","audio","wav","ai","nth-harmony"],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourname/nth-harmony.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourname/nth-harmony/issues"
+  },
+  "homepage": "https://github.com/yourname/nth-harmony#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

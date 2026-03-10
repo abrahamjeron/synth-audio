@@ -81,28 +81,3 @@ If you prefer, create a local tarball to inspect the package before publishing:
 ```bash
 npm pack
 ```
-
-Repository / pushing to GitHub
-----------------------------
-
-This repository can be published to GitHub so you (or others) can clone and install it.
-
-Remote URL:
-
-```
-https://github.com/abrahamjeron/synth-audio.git
-```
-
-To add the remote and push the current `main` branch (confirm before running):
-
-```bash
-# add remote (only if not already set)
-git remote add origin https://github.com/abrahamjeron/synth-audio.git
-# push the main branch and set upstream
-git push -u origin main
-```
-
-If you'd like I can run these git commands for you now — tell me to proceed and I'll add the remote (if missing) and push the current branch.
-
-What I added to the repo
-- A `.gitignore` file to exclude `node_modules`, `output/`, lockfiles and IDE/editor folders.
