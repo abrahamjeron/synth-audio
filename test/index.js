@@ -16,7 +16,7 @@ const params = {
   melody: { type: 'custom', notes: ['E4','D4','C4','G3'], loop: true }
 };
 
-// Generate and save a WAV file
+
 const main = async () => {
   const result = await MusicEngine.generate(params);
   console.log('Result:', result);
