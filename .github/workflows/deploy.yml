@@ -4,12 +4,23 @@ on:
   push:
     branches: [ main ]
 
+# Grant the workflow the minimal write permissions it needs so the
+# gh-pages action can push the built site. Without this the default
+# GITHUB_TOKEN may be read-only and pushes will fail with 403.
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # ensure the checked-out repo retains credentials so subsequent
+          # git push operations use the provided GITHUB_TOKEN
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
