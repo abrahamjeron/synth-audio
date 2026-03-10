@@ -18,7 +18,14 @@ jobs:
 
       - name: Install demo dependencies
         working-directory: ./test
-        run: npm ci
+        run: |
+          # Use npm ci when a lockfile exists for deterministic install,
+          # otherwise fall back to npm install so the workflow doesn't fail.
+          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Prepare public folder
         run: |
