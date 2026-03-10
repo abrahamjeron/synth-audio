@@ -42,15 +42,14 @@ jobs:
         run: |
           rm -rf public
           mkdir public
-          # Copy demo files
-          cp -r test/* public/
-          # Include the repository README so the demo can load it at ./README.md
-          cp README.md public/README.md || true
-          # Ensure jsoneditor dist files are copied so the demo is self-contained
-          mkdir -p public/node_modules/jsoneditor/dist
-          cp test/node_modules/jsoneditor/dist/jsoneditor.min.js public/node_modules/jsoneditor/dist/
-          cp test/node_modules/jsoneditor/dist/jsoneditor.min.css public/node_modules/jsoneditor/dist/
-          # Add nojekyll to avoid GitHub Pages treating files as Jekyll
+          # Copy demo HTML/JS entry point (but NOT node_modules — CDN used instead)
+          cp test/index.html public/index.html
+          cp test/index.js public/index.js 2>/dev/null || true
+          # Copy the engine source so the ES module import (./src/...) resolves
+          cp -r src public/src
+          # Include the repository README so the demo can fetch it at ./README.md
+          cp README.md public/README.md
+          # Add .nojekyll so GitHub Pages serves all files (incl. underscore dirs)
           touch public/.nojekyll
 
       - name: Deploy to gh-pages
