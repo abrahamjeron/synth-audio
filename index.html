@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>synth-audio demo</title>
-  <link href="./node_modules/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
+  <link href="https://cdn.jsdelivr.net/npm/jsoneditor@10/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
     <style>
       body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 16px; }
       /* two-column layout: editor (left) and README (right) */
@@ -45,9 +45,9 @@
       </div>
     </div>
 
-  <script src="./node_modules/jsoneditor/dist/jsoneditor.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsoneditor@10/dist/jsoneditor.min.js"></script>
     <script type="module">
-  import SimpleMusicGenerator from './node_modules/synth-audio/engine/SimpleMusicGenerator.js';
+  import SimpleMusicGenerator from './src/engine/SimpleMusicGenerator.js';
       import { marked } from 'https://cdn.jsdelivr.net/npm/marked@5.1.1/lib/marked.esm.js';
 
       const container = document.getElementById('editor');
