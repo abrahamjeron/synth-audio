@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>synth-audio demo</title>
+  <link href="./node_modules/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
+    <style>
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 16px; }
+      /* two-column layout: editor (left) and README (right) */
+  .split { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  /* make editor and README equal width */
+  .left, .right { flex: 1 1 45%; min-width: 300px; box-sizing: border-box; }
+  #editor { width: 100%; height: 640px; border: 1px solid #ddd; box-sizing: border-box; }
+  #readme-container { margin-top: 0; }
+  /* README matches editor height and scrolls */
+  #readme { background: #fff; padding: 12px; border: 1px solid #eee; height: 640px; overflow: auto; box-sizing: border-box; }
+      .controls { margin-top: 12px; }
+      .log { margin-top: 12px; white-space: pre-wrap; background: #fafafa; padding: 8px; border: 1px solid #eee; }
+    </style>
+  </head>
+  <body>
+    <h1>synth-audio — demo</h1>
+    <p>Edit the generation parameters below and click <strong>Create tune</strong>. The generated WAV will appear in the player when ready.</p>
+
+    <div class="split">
+      <div class="left">
+        <div id="editor"></div>
+
+        <div class="controls">
+          <button id="create">Create tune</button>
+          <button id="download" disabled>Download WAV</button>
+        </div>
+
+        <audio id="player" controls style="display:block; margin-top:12px; width:100%"></audio>
+
+        <div id="log" class="log">Ready.</div>
+      </div>
+
+      <div class="right">
+        <section id="readme-container">
+          <h2>README</h2>
+          <div id="readme">Loading README...</div>
+        </section>
+      </div>
+    </div>
+
+  <script src="./node_modules/jsoneditor/dist/jsoneditor.min.js"></script>
+    <script type="module">
+      import SimpleMusicGenerator from '../src/engine/SimpleMusicGenerator.js';
+      import { marked } from 'https://cdn.jsdelivr.net/npm/marked@5.1.1/lib/marked.esm.js';
+
+      const container = document.getElementById('editor');
+      const editor = new JSONEditor(container);
+
+      const initialJson = {
+        mood: 'happy',
+        tempo: 120,
+        key: 'C',
+        duration: 10,
+        energy: 'medium',
+        lyrics: 'A short demo',
+        instruments: [
+          { name: 'lead', waveform: 'sine', volume: 0.3, envelope: { attack: 0.01, decay: 0.05, sustain: 0.8, release: 0.1 } },
+          { name: 'pad', waveform: 'triangle', volume: 0.2, envelope: { attack: 0.1, decay: 0.2, sustain: 0.6, release: 0.5 } }
+        ],
+        customChords: ['C4','G3','A3','F3'],
+        customScale: ['C4','D4','E4','F4','G4','A4','B4'],
+        melody: { type: 'custom', notes: ['E4','D4','C4','G3'], loop: true }
+      };
+
+      editor.set(initialJson);
+
+      const logEl = document.getElementById('log');
+      const player = document.getElementById('player');
+      const downloadBtn = document.getElementById('download');
+
+      async function loadReadme() {
+        try {
+          // fetch README relative to this file (../README.md)
+          const res = await fetch('../README.md');
+          if (!res.ok) throw new Error(`Failed to load README: ${res.status}`);
+          const md = await res.text();
+          const html = marked.parse(md);
+          document.getElementById('readme').innerHTML = html;
+        } catch (err) {
+          document.getElementById('readme').textContent = 'Could not load README: ' + err.message;
+        }
+      }
+
+      loadReadme();
+
+      function writeLog(msg) {
+        logEl.textContent = msg;
+      }
+
+      function float32ToWavBuffer(float32Array, sampleRate = 44100) {
+        const numChannels = 1;
+        const bytesPerSample = 2;
+        const blockAlign = numChannels * bytesPerSample;
+        const dataLength = float32Array.length * bytesPerSample;
+        const buffer = new ArrayBuffer(44 + dataLength);
+        const view = new DataView(buffer);
+
+        function writeString(view, offset, string) {
+          for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+          }
+        }
+
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + dataLength, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true); // subchunk1Size
+        view.setUint16(20, 1, true); // PCM
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * blockAlign, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, dataLength, true);
+
+        // write samples
+        let offset = 44;
+        for (let i = 0; i < float32Array.length; i++, offset += 2) {
+          let s = Math.max(-1, Math.min(1, float32Array[i]));
+          view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+        }
+
+        return buffer;
+      }
+
+      document.getElementById('create').addEventListener('click', async () => {
+        try {
+          writeLog('Generating...');
+          const params = editor.get();
+
+          // Basic validation / defaults
+          params.mood = (params.mood || 'happy');
+          params.tempo = params.tempo || 120;
+          params.key = params.key || 'C';
+          params.duration = params.duration || 10;
+          params.energy = params.energy || 'medium';
+          params.lyrics = params.lyrics || '';
+          if (!Array.isArray(params.instruments) || params.instruments.length === 0) {
+            throw new Error('Provide at least one instrument in instruments array');
+          }
+
+          const generator = new SimpleMusicGenerator();
+          // generateBackgroundMusic returns a Float32Array
+          const samples = generator.generateBackgroundMusic(params, params.duration);
+
+          writeLog(`Audio buffer created: ${ (samples.length / 44100).toFixed(2) }s — preparing WAV...`);
+
+          const wavBuffer = float32ToWavBuffer(samples, 44100);
+          const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+
+          player.src = url;
+          player.style.display = 'block';
+          downloadBtn.disabled = false;
+          downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `music_${new Date().toISOString().replace(/[:.]/g,'-')}.wav`;
+            a.click();
+          };
+
+          writeLog('Ready — play the audio with the player above.');
+        } catch (err) {
+          writeLog('Error: ' + err.message);
+          console.error(err);
+        }
+      });
+
+      // Helpful note for users opening the file directly
+      writeLog('Tip: open this demo via a local HTTP server (e.g. python -m http.server) if module imports fail when using file://');
+    </script>
+  </body>
+</html>

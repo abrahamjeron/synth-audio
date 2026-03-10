@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "jsoneditor": "^10.4.2",
     "synth-audio": "file:../src"
   },
   "name": "test",
